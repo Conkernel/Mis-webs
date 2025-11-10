@@ -1,0 +1,17 @@
+crawler/.pm2/
+# Node.js
+crawler/node_modules/
+crawler/npm-debug.log
+crawler/yarn-error.log
+crawler/yarn-debug.log
+crawler/.pnpm-debug.log
+
+# Logs
+crawler/logs/
+crawler/*.log
+
+
+# Build
+crawler/dist/
+crawler/build/
+

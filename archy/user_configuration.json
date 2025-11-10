@@ -1,0 +1,219 @@
+{
+    "app_config": {},
+    "archinstall-language": "Spanish",
+    "auth_config": {},
+    "bootloader": "Grub",
+    "custom_commands": [
+    "useradd -m -G wheel -s /bin/bash oloco",
+    "echo 'oloco:$6$ZfPcA5G.Ne/1/CD0$U9LK034.zqje0AQ8Cco8HS6ERW/rvlhXXRWQ2tLS1DhLetiOg6FyOgBJyFiguMEpuhO/8GzQJvPFFb6Gb71V/1' | chpasswd -e",
+    "echo 'root:$6$ZfPcA5G.Ne/1/CD0$U9LK034.zqje0AQ8Cco8HS6ERW/rvlhXXRWQ2tLS1DhLetiOg6FyOgBJyFiguMEpuhO/8GzQJvPFFb6Gb71V/1' | chpasswd -e"
+    ],
+    "disk_config": {
+        "btrfs_options": {
+            "snapshot_config": null
+        },
+        "config_type": "manual_partitioning",
+        "device_modifications": [
+            {
+                "device": "/dev/sda",
+                "partitions": [
+                    {
+                        "btrfs": [],
+                        "dev_path": null,
+                        "flags": [
+                            "boot"
+                        ],
+                        "fs_type": "ext4",
+                        "mount_options": [],
+                        "mountpoint": "/boot",
+                        "obj_id": "e5b1763b-3011-41ff-985c-50cdb65d7c79",
+                        "size": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "GiB",
+                            "value": 2
+                        },
+                        "start": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "MiB",
+                            "value": 1
+                        },
+                        "status": "create",
+                        "type": "primary"
+                    },
+                    {
+                        "btrfs": [],
+                        "dev_path": null,
+                        "flags": [],
+                        "fs_type": "ext4",
+                        "mount_options": [],
+                        "mountpoint": "/",
+                        "obj_id": "2de83d09-f323-49bd-873f-0e132a5998ee",
+                        "size": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "B",
+                            "value": 32211206144
+                        },
+                        "start": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "B",
+                            "value": 2148532224
+                        },
+                        "status": "create",
+                        "type": "primary"
+                    }
+                ],
+                "wipe": false
+            }
+        ]
+    },
+    "hostname": "archy.casa.lan",
+    "kernels": [
+        "linux"
+    ],
+    "locale_config": {
+        "kb_layout": "us",
+        "sys_enc": "UTF-8",
+        "sys_lang": "en_US.UTF-8"
+    },
+    "mirror_config": {
+        "custom_repositories": [],
+        "custom_servers": [],
+        "mirror_regions": {
+            "Spain": [
+                "https://ftp.rediris.es/mirror/archlinux/$repo/os/$arch",
+                "http://es.mirrors.cicku.me/archlinux/$repo/os/$arch",
+                "https://es.mirrors.cicku.me/archlinux/$repo/os/$arch",
+                "https://nox.panibrez.com/archlinux/$repo/os/$arch",
+                "http://mirror.raiolanetworks.com/archlinux/$repo/os/$arch",
+                "https://mirror.raiolanetworks.com/archlinux/$repo/os/$arch",
+                "http://mirror.es.cdn-perfprod.com/archlinux/$repo/os/$arch",
+                "https://mirror.es.cdn-perfprod.com/archlinux/$repo/os/$arch"
+            ],
+            "United States": [
+                "http://mirrors.rit.edu/archlinux/$repo/os/$arch",
+                "https://mirrors.rit.edu/archlinux/$repo/os/$arch",
+                "http://mirror.umd.edu/archlinux/$repo/os/$arch",
+                "https://mirror.umd.edu/archlinux/$repo/os/$arch",
+                "http://ftp.osuosl.org/pub/archlinux/$repo/os/$arch",
+                "https://ftp.osuosl.org/pub/archlinux/$repo/os/$arch",
+                "http://mirrors.lug.mtu.edu/archlinux/$repo/os/$arch",
+                "https://mirrors.lug.mtu.edu/archlinux/$repo/os/$arch",
+                "http://mirrors.xmission.com/archlinux/$repo/os/$arch",
+                "http://mirrors.kernel.org/archlinux/$repo/os/$arch",
+                "https://mirrors.kernel.org/archlinux/$repo/os/$arch",
+                "http://mirrors.cat.pdx.edu/archlinux/$repo/os/$arch",
+                "http://arch.hugeblank.dev/$repo/os/$arch",
+                "https://arch.hugeblank.dev/$repo/os/$arch"
+            ]
+        },
+        "optional_repositories": []
+    },
+    "network_config": {
+        "type": "nm"
+    },
+    "ntp": true,
+    "packages": [
+        "bash-completion",
+        "bash",
+        "base-devel",
+        "bat",
+        "bash-completion",
+        "base-devel",
+        "bat",
+        "code",
+        "cronie",
+        "curl",
+        "dhclient",
+        "e2fsprogs",
+        "feh",
+        "fzf",
+        "github-cli",
+        "git",
+        "gnome-keyring",
+        "grub",
+        "efibootmgr",
+        "lightdm-gtk-greeter",
+        "lightdm",
+        "linux-headers",
+        "locate",
+        "lsd",
+        "lvm2",
+        "mesa",
+        "mesa-utils",
+        "mtools",
+        "nano-syntax-highlighting",
+        "net-tools",
+        "networkmanager",
+        "neovim",
+        "nm-connection-editor",
+        "noto-fonts-emoji",
+        "open-vm-tools",
+        "openssh",
+        "os-prober",
+        "p7zip",
+        "parted",
+        "pkgfile",
+        "polkit",
+        "psutils",
+        "python-dbus-next",
+        "python-psutil",
+        "python",
+        "qtile",
+        "rofi",
+        "rsync",
+        "rust",
+        "sudo",
+        "thunar",
+        "tmux",
+        "tree",
+        "ttf-noto-nerd",
+        "vim",
+        "vlc",
+        "wget",
+        "xdg-dbus-proxy",
+        "xdg-user-dirs",
+        "xdg-utils",
+        "xf86-video-intel",
+        "xfce4-panel",
+        "xfce4-session",
+        "xfce4-settings",
+        "xfdesktop",
+        "xfsprogs",
+        "xfwm4",
+        "xorg-server",
+        "xorg-xinit",
+        "xterm",
+        "zsh"
+    ],
+    "parallel_downloads": 0,
+    "profile_config": {
+        "gfx_driver": null,
+        "greeter": null,
+        "profile": {
+            "custom_settings": {
+                "sshd": {}
+            },
+            "details": [
+                "sshd"
+            ],
+            "main": "Server"
+        }
+    },
+    "script": null,
+    "services": [],
+    "swap": false,
+    "timezone": "Europe/Madrid",
+    "version": "3.0.11"
+}

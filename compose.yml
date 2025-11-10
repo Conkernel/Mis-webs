@@ -1,0 +1,20 @@
+# compose.yml
+services:
+  # ========================================
+  # 1. WEB LOCAL: HTTP directo (crawler.web.casa.lan)
+  # ========================================
+  crawler:
+    build: .
+    container_name: crawler
+    restart: unless-stopped
+    ports:
+      - "80:80"          # ← Nginx (acceso HTTP local)
+      - "3000:3000"      # ← Node.js directo (para depuración)
+    expose:
+      - "3000"           # ← Para que Nginx interno pueda acceder
+    networks:
+      - skynet
+
+networks:
+  skynet:
+    driver: bridge
