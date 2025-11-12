@@ -18,6 +18,8 @@ COPY crawler /var/www/crawler/
 
 COPY archy /var/www/archy/
 
+COPY neovim /var/www/neovim/
+
 RUN mkdir -p /var/log/pm2 && chown nginx:nginx /var/log/pm2
 
 COPY entrypoint.sh /entrypoint.sh
@@ -33,6 +35,8 @@ RUN chmod -R 755 /var/www/archy
 RUN chmod -R 755 /var/www/zsh
 
 RUN chmod -R 755 /var/www/docker
+
+RUN chmod -R 755 /var/www/neovim
 
 ENTRYPOINT ["/entrypoint.sh"]
 
