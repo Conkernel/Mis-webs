@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+USERHOME=
+
 # ============ COLORES ============
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 error() { echo -e "${RED}ERROR: $1${NC}" >&2; exit 1; }
@@ -25,7 +27,16 @@ cat << 'EOF'
 
 Presiona ENTER para continuar (o Ctrl+C para salir)...
 EOF
-read -r
+
+# Forzar interacción si no hay TTY (curl | sudo bash)
+if [ -t 0 ]; then
+    read -r
+else
+    echo -e "${YELLOW}ADVERTENCIA: Ejecución no interactiva detectada (curl | sudo bash)${NC}"
+    echo -e "${YELLOW}¿Deseas continuar? (y/n):${NC}"
+    read -r CONFIRM < /dev/tty
+    [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo -e "${RED}Instalación cancelada por el usuario.${NC}"; exit 1; }
+fi
 
 # ============ 3. SUDO ============
 SUDO() { [[ $EUID -eq 0 ]] && "$@" || sudo "$@"; }
@@ -42,18 +53,19 @@ NVIM_VERSION=$(echo "$LATEST_URL" | sed 's|.*/tag/v||' | sed 's|/.*||')
 [ -z "$NVIM_VERSION" ] && error "No se pudo detectar versión"
 
 APPIMAGE_URL="https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-x86_64.appimage"
-APP="$HOME/nvim.appimage"
+# APP="$HOME/nvim.appimage"
+APP="/usr/local/bin/nvim"
 
 echo -e "${YELLOW}Descargando Neovim v${NVIM_VERSION}...${NC}"
-curl -fLo "$APP" \
+SUDO curl -fLo "$APP" \
   --retry 3 \
   --retry-delay 5 \
   -H "User-Agent: curl/neovim-installer" \
   "$APPIMAGE_URL"
 
 # Verificar que sea ejecutable
-file "$APP" | grep -q "ELF 64-bit" || error "AppImage corrupto o no descargado"
-chmod +x "$APP"
+SUDO file "$APP" | grep -q "ELF 64-bit" || error "AppImage corrupto o no descargado"
+SUDO chmod +x "$APP"
 
 NVIM_VER=$("$APP" --version | head -n1)
 echo -e "${GREEN}Neovim instalado: $NVIM_VER${NC}"
@@ -66,7 +78,7 @@ if command -v nvim >/dev/null 2>&1; then
         SUDO mv "$OLD_NVIM" "${OLD_NVIM}.apt" 2>/dev/null || true
     fi
 fi
-SUDO ln -sf "$APP" /usr/local/bin/nvim
+# SUDO ln -sf "$APP" /usr/local/bin/nvim
 
 # ============ 7. CONFIGURAR LAZYVIM + AYU ============
 CONFIG="$HOME/.config/nvim"
@@ -80,6 +92,10 @@ fi
 
 echo -e "${YELLOW}Instalando LazyVim...${NC}"
 git clone --depth 1 https://github.com/LazyVim/starter "$CONFIG"
+
+echo -e "${YELLOW}Borrando rastros de .git... ${NC}"
+
+rm $CONFIG/.git -rf
 
 # Crear directorio de plugins
 mkdir -p "$CONFIG/lua/plugins"
@@ -111,4 +127,9 @@ echo -e "   • Primera vez: espera 10-30s para instalar plugins"
 echo -e "${BLUE}========================================================${NC}"
 
 # ============ 9. LANZAR NEOVIM ============
-exec nvim
+# Al final del script
+if [[ $EUID -eq 0 ]]; then
+    exec sudo -u "$SUDO_USER" "$APP"   # ← Neovim se abre como oloco
+else
+    exec "$APP"
+fi
