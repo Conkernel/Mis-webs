@@ -1,37 +1,41 @@
 #!/bin/bash
 set -e
 
+# ============ COLORES ============
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 error() { echo -e "${RED}ERROR: $1${NC}" >&2; exit 1; }
 
-# 1. Detectar distro
-[ -f /etc/os-release ] && . /etc/os-release || error "No /etc/os-release"
+# ============ 1. DETECTAR DISTRO ============
+echo -e "${BLUE}Verificando sistema...${NC}"
+[ -f /etc/os-release ] && . /etc/os-release || error "No se encontró /etc/os-release"
 [[ "$ID" =~ ^(ubuntu|debian)$ ]] || error "Solo Ubuntu/Debian. Detectado: $ID"
+echo -e "${GREEN}Compatible: $PRETTY_NAME${NC}"
 
-# 2. Aviso
+# ============ 2. AVISO ============
 cat << 'EOF'
 
 ============================================================
                INSTALADOR NEOVIM + LAZYVIM
 ============================================================
 
-→ Neovim AppImage (última versión)
-→ LazyVim + Ayu + tree-sitter
-→ Backup de config
+→ Neovim AppImage (última versión estable)
+→ LazyVim + tema Ayu (oscuro - mirage)
+→ tree-sitter: se instala automáticamente
+→ Backup de ~/.config/nvim
 
-Presiona ENTER para continuar...
+Presiona ENTER para continuar (o Ctrl+C para salir)...
 EOF
 read -r
 
-# 3. Sudo
+# ============ 3. SUDO ============
 SUDO() { [[ $EUID -eq 0 ]] && "$@" || sudo "$@"; }
 
-# 4. Dependencias
+# ============ 4. DEPENDENCIAS ============
 echo -e "${YELLOW}Instalando dependencias...${NC}"
 SUDO apt update
 SUDO apt install -y git curl wget fuse3 libfuse2 build-essential ca-certificates
 
-# 5. Detectar versión con SED (compatible con Debian)
+# ============ 5. DETECTAR Y DESCARGAR NEOVIM APPIMAGE ============
 echo -e "${YELLOW}Detectando versión más reciente de Neovim...${NC}"
 LATEST_URL=$(curl -fsL -o /dev/null -w "%{url_effective}" https://github.com/neovim/neovim/releases/latest)
 NVIM_VERSION=$(echo "$LATEST_URL" | sed 's|.*/tag/v||' | sed 's|/.*||')
@@ -47,59 +51,64 @@ curl -fLo "$APP" \
   -H "User-Agent: curl/neovim-installer" \
   "$APPIMAGE_URL"
 
-# Verificar AppImage
-file "$APP" | grep -q "ELF 64-bit" || error "AppImage no válido"
+# Verificar que sea ejecutable
+file "$APP" | grep -q "ELF 64-bit" || error "AppImage corrupto o no descargado"
 chmod +x "$APP"
 
 NVIM_VER=$("$APP" --version | head -n1)
-echo -e "${GREEN}Neovim: $NVIM_VER${NC}"
+echo -e "${GREEN}Neovim instalado: $NVIM_VER${NC}"
 
-# 6. Evitar conflicto con nvim de apt
+# ============ 6. EVITAR CONFLICTO CON NEOVIM DE APT ============
 if command -v nvim >/dev/null 2>&1; then
     OLD_NVIM=$(realpath $(which nvim))
     if [[ "$OLD_NVIM" != "$APP" && "$OLD_NVIM" != "/usr/local/bin/nvim" ]]; then
-        echo -e "${YELLOW}Neovim apt detectado → renombrando a nvim.apt${NC}"
+        echo -e "${YELLOW}Neovim de apt detectado → moviendo a nvim.apt${NC}"
         SUDO mv "$OLD_NVIM" "${OLD_NVIM}.apt" 2>/dev/null || true
     fi
 fi
 SUDO ln -sf "$APP" /usr/local/bin/nvim
 
-# 7. tree-sitter
-# echo -e "${YELLOW}Instalando tree-sitter CLI...${NC}"
-# if ! command -v tree-sitter &>/dev/null; then
-#     if ! command -v cargo &>/dev/null; then
-#         echo "Instalando Rust..."
-#         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-#         source "$HOME/.cargo/env"
-#     fi
-#     cargo install tree-sitter-cli --locked > /dev/null 2>&1
-# fi
-# echo -e "${GREEN}tree-sitter: $(tree-sitter --version 2>/dev/null || echo 'instalado')${NC}"
+# ============ 7. CONFIGURAR LAZYVIM + AYU ============
+CONFIG="$HOME/.config/nvim"
 
-# # 8. LazyVim + Ayu
-# CONFIG="$HOME/.config/nvim"
-# [ -d "$CONFIG" ] && mv "$CONFIG" "$CONFIG.backup.$(date +%s)" && echo -e "${YELLOW}Backup creado${NC}"
+# Backup si existe
+if [ -d "$CONFIG" ]; then
+    BACKUP_DIR="$CONFIG.backup.$(date +%s)"
+    mv "$CONFIG" "$BACKUP_DIR"
+    echo -e "${YELLOW}Backup creado: $BACKUP_DIR${NC}"
+fi
 
-# echo -e "${YELLOW}Instalando LazyVim...${NC}"
-echo -e "${YELLOW}tree-sitter se instalará automáticamente en Neovim${NC}"
-
+echo -e "${YELLOW}Instalando LazyVim...${NC}"
 git clone --depth 1 https://github.com/LazyVim/starter "$CONFIG"
+
+# Crear directorio de plugins
+mkdir -p "$CONFIG/lua/plugins"
+
+# Añadir tema Ayu
 cat > "$CONFIG/lua/plugins/ayu.lua" << 'EOF'
-return { {
-  "Shatur/neovim-ayu", lazy = false, priority = 1000,
-  config = function()
-    require("ayu").setup({ mirage = true })
-    vim.cmd("colorscheme ayu")
-  end
-} }
+return {
+  {
+    "Shatur/neovim-ayu",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require("ayu").setup({ mirage = true })
+      vim.cmd("colorscheme ayu")
+    end,
+  },
+}
 EOF
 
-# 9. Final
+echo -e "${GREEN}Tema Ayu (mirage) configurado${NC}"
+echo -e "${YELLOW}tree-sitter se instalará automáticamente al abrir archivos${NC}"
+
+# ============ 8. FINAL ============
 echo -e "${BLUE}========================================================${NC}"
 echo -e "${GREEN}¡INSTALACIÓN COMPLETA!${NC}"
 echo -e "   • Neovim: $NVIM_VER"
-echo -e "   • LazyVim + Ayu + tree-sitter"
-echo -e "   • Primera vez: espera 10-30s"
+echo -e "   • LazyVim + Ayu + tree-sitter automático"
+echo -e "   • Primera vez: espera 10-30s para instalar plugins"
 echo -e "${BLUE}========================================================${NC}"
 
+# ============ 9. LANZAR NEOVIM ============
 exec nvim
