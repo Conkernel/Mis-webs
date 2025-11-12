@@ -18,6 +18,8 @@ if [ -n "$SUDO_USER" ]; then
   echo "Este script instala la configuración en el directorio personal ($HOME)."
   echo "Si lo ejecutas con 'sudo', la configuración se instalará en el Home de root."
   echo "Por favor, ejecuta el script SIN usar 'sudo', pero con un usuario con permisos"
+  echo "sudo y el parámetro NOPASSWD en el fichero de config."
+
   echo
   
   # Sale del script con un código de error
