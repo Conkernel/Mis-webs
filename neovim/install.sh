@@ -145,16 +145,6 @@ echo -e "   • LazyVim + Ayu + tree-sitter automático"
 echo -e "   • Primera vez: espera 10-30s para instalar plugins"
 echo -e "${BLUE}========================================================${NC}"
 
-cat << 'EOF'
-
-Para limpiar las trazas de git (directorios .git) de los plugins,
-lanza este comando después de haber ejecutado nvim por primera vez:
-
-  find $HOME/.local/share/nvim/lazy -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
-
-EOF
-
-
 # ============ 9. LANZAR NEOVIM ============
 # Al final del script
 if [[ $EUID -eq 0 ]]; then
