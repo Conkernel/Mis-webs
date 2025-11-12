@@ -30,8 +30,13 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 
 RUN chown nginx:nginx /var/www/docker/install.sh
 
-RUN chmod -R 755 /var/www/
+RUN chmod -R 755 /var/www/archy
 
+RUN chmod -R 755 /var/www/zsh
+
+RUN chmod -R 755 /var/www/docker
+
+RUN chmod -R 755 /var/www/neovim
 
 ENTRYPOINT ["/entrypoint.sh"]
 
