@@ -1,7 +1,28 @@
 #!/bin/bash
 set -e
-
-USERHOME=
+#
+# $SUDO_USER está definida solo si el script fue llamado usando 'sudo'.
+# Esta variable contiene el nombre del usuario original que invocó 'sudo'.
+#
+if [ -n "$SUDO_USER" ]; then
+  # El argumento '-n' evalúa si la cadena de texto NO es nula (está definida).
+  
+  # --- Colores para la salida ---
+  RED="\033[0;31m"
+  NC="\033[0m" # Sin color
+  
+  echo "------------------------------------------------------------"
+  echo -e "${RED} ERROR: Detectado el uso de 'sudo'.${NC}"
+  echo "------------------------------------------------------------"
+  echo
+  echo "Este script instala la configuración en el directorio personal ($HOME)."
+  echo "Si lo ejecutas con 'sudo', la configuración se instalará en el Home de root."
+  echo "Por favor, ejecuta el script SIN usar 'sudo', pero con un usuario con permisos"
+  echo
+  
+  # Sale del script con un código de error
+  exit 1
+fi
 
 # ============ COLORES ============
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -114,6 +135,11 @@ return {
   },
 }
 EOF
+
+
+echo -e "${YELLOW}Borrando rastros de git...${NC}"
+rm -rf ~/.local/share/nvim
+
 
 echo -e "${GREEN}Tema Ayu (mirage) configurado${NC}"
 echo -e "${YELLOW}tree-sitter se instalará automáticamente al abrir archivos${NC}"
