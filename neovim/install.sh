@@ -150,7 +150,7 @@ cat << 'EOF'
 Para limpiar las trazas de git (directorios .git) de los plugins,
 lanza este comando después de haber ejecutado nvim por primera vez:
 
-  find '$HOME/.local/share/nvim/lazy' -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
+  find $HOME/.local/share/nvim/lazy -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
 
 EOF
 
@@ -159,10 +159,6 @@ EOF
 # Al final del script
 if [[ $EUID -eq 0 ]]; then
     exec sudo -u "$SUDO_USER" "$APP"   # ← Neovim se abre como oloco
-    exec sudo -u "$SUDO_USER" find '/home/$SUDO_USER/.local/share/nvim/lazy' -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
-
 else
     exec "$APP"
-    find '/home/$SUDO_USER/.local/share/nvim/lazy' -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
-
 fi
