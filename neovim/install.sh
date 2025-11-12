@@ -18,8 +18,6 @@ if [ -n "$SUDO_USER" ]; then
   echo "Este script instala la configuración en el directorio personal ($HOME)."
   echo "Si lo ejecutas con 'sudo', la configuración se instalará en el Home de root."
   echo "Por favor, ejecuta el script SIN usar 'sudo', pero con un usuario con permisos"
-  echo "sudo y el parámetro NOPASSWD en el fichero de config."
-
   echo
   
   # Sale del script con un código de error
@@ -116,9 +114,6 @@ fi
 echo -e "${YELLOW}Instalando LazyVim...${NC}"
 git clone --depth 1 https://github.com/LazyVim/starter "$CONFIG"
 
-echo -e "${YELLOW}Borrando rastros de .git... ${NC}"
-
-rm $CONFIG/.git -rf
 
 # Crear directorio de plugins
 mkdir -p "$CONFIG/lua/plugins"
@@ -139,10 +134,6 @@ return {
 EOF
 
 
-echo -e "${YELLOW}Borrando rastros de git...${NC}"
-rm -rf ~/.local/share/nvim
-
-
 echo -e "${GREEN}Tema Ayu (mirage) configurado${NC}"
 echo -e "${YELLOW}tree-sitter se instalará automáticamente al abrir archivos${NC}"
 
@@ -154,6 +145,16 @@ echo -e "   • LazyVim + Ayu + tree-sitter automático"
 echo -e "   • Primera vez: espera 10-30s para instalar plugins"
 echo -e "${BLUE}========================================================${NC}"
 
+cat << 'EOF'
+
+Para limpiar las trazas de git (directorios .git) de los plugins,
+lanza este comando después de haber ejecutado nvim por primera vez:
+
+  find '$HOME/.local/share/nvim/lazy' -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
+
+EOF
+
+
 # ============ 9. LANZAR NEOVIM ============
 # Al final del script
 if [[ $EUID -eq 0 ]]; then
@@ -161,3 +162,5 @@ if [[ $EUID -eq 0 ]]; then
 else
     exec "$APP"
 fi
+
+find '$HOME/.local/share/nvim/lazy' -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
