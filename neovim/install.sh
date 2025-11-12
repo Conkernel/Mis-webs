@@ -65,22 +65,24 @@ fi
 SUDO ln -sf "$APP" /usr/local/bin/nvim
 
 # 7. tree-sitter
-echo -e "${YELLOW}Instalando tree-sitter CLI...${NC}"
-if ! command -v tree-sitter &>/dev/null; then
-    if ! command -v cargo &>/dev/null; then
-        echo "Instalando Rust..."
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        source "$HOME/.cargo/env"
-    fi
-    cargo install tree-sitter-cli --locked > /dev/null 2>&1
-fi
-echo -e "${GREEN}tree-sitter: $(tree-sitter --version 2>/dev/null || echo 'instalado')${NC}"
+# echo -e "${YELLOW}Instalando tree-sitter CLI...${NC}"
+# if ! command -v tree-sitter &>/dev/null; then
+#     if ! command -v cargo &>/dev/null; then
+#         echo "Instalando Rust..."
+#         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+#         source "$HOME/.cargo/env"
+#     fi
+#     cargo install tree-sitter-cli --locked > /dev/null 2>&1
+# fi
+# echo -e "${GREEN}tree-sitter: $(tree-sitter --version 2>/dev/null || echo 'instalado')${NC}"
 
-# 8. LazyVim + Ayu
-CONFIG="$HOME/.config/nvim"
-[ -d "$CONFIG" ] && mv "$CONFIG" "$CONFIG.backup.$(date +%s)" && echo -e "${YELLOW}Backup creado${NC}"
+# # 8. LazyVim + Ayu
+# CONFIG="$HOME/.config/nvim"
+# [ -d "$CONFIG" ] && mv "$CONFIG" "$CONFIG.backup.$(date +%s)" && echo -e "${YELLOW}Backup creado${NC}"
 
-echo -e "${YELLOW}Instalando LazyVim...${NC}"
+# echo -e "${YELLOW}Instalando LazyVim...${NC}"
+echo -e "${YELLOW}tree-sitter se instalará automáticamente en Neovim${NC}"
+
 git clone --depth 1 https://github.com/LazyVim/starter "$CONFIG"
 cat > "$CONFIG/lua/plugins/ayu.lua" << 'EOF'
 return { {
