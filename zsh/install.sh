@@ -6,7 +6,7 @@
 if [ "$EUID" -ne 0 ]; then
     # Si no es root, muestra un error y sale
     echo "🚨 ERROR: Este script debe ejecutarse con privilegios de root (sudo)."
-    echo "Por favor, inténtalo de nuevo con: $0"
+    echo "Por favor, inténtalo de nuevo con: sudo bash"
     exit 1
 fi
 # --- 2. VERIFICACIÓN DE USUARIO Y EJECUCIÓN ---
