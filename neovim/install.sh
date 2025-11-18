@@ -1,15 +1,20 @@
 #!/bin/bash
 set -e
+
+# ============ COLORES ============
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'; NC='\033[0m'
+NC="\033[0m" # Sin color
+
+
 #
 # $SUDO_USER está definida solo si el script fue llamado usando 'sudo'.
 # Esta variable contiene el nombre del usuario original que invocó 'sudo'.
 #
 if [ -n "$SUDO_USER" ]; then
   # El argumento '-n' evalúa si la cadena de texto NO es nula (está definida).
-  
-  # --- Colores para la salida ---
-  RED="\033[0;31m"
-  NC="\033[0m" # Sin color
   
   echo "------------------------------------------------------------"
   echo -e "${RED} ERROR: Detectado el uso de 'sudo'.${NC}"
@@ -24,8 +29,6 @@ if [ -n "$SUDO_USER" ]; then
   exit 1
 fi
 
-# ============ COLORES ============
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 error() { echo -e "${RED}ERROR: $1${NC}" >&2; exit 1; }
 
 # ============ 1. DETECTAR DISTRO ============
@@ -34,20 +37,13 @@ echo -e "${BLUE}Verificando sistema...${NC}"
 [[ "$ID" =~ ^(ubuntu|debian)$ ]] || error "Solo Ubuntu/Debian. Detectado: $ID"
 echo -e "${GREEN}Compatible: $PRETTY_NAME${NC}"
 
-# ============ 2. AVISO ============
-cat << 'EOF'
+# ============ AVISO ============
 
-============================================================
-               INSTALADOR NEOVIM + LAZYVIM
-============================================================
+echo "Antes de nada, este script ELIMINARÁ cualquier instalación previa de Nvim a través de apt"
+echo "Luego instalará la AppImage de la última versión estable de Neovim Appimage en Ubuntu."
+echo "Instalará libfuse2 (necesario para AppImages en Ubuntu 22+), descargará el archivo y lo colocará en /usr/local/bin/nvim."
+echo "¿Realmente quieres proceder con la instalación? (y/n)"
 
-→ Neovim AppImage (última versión estable)
-→ LazyVim + tema Ayu (oscuro - mirage)
-→ tree-sitter: se instala automáticamente
-→ Backup de ~/.config/nvim
-
-Presiona ENTER para continuar (o Ctrl+C para salir)...
-EOF
 
 # Forzar interacción si no hay TTY (curl | sudo bash)
 if [ -t 0 ]; then
@@ -59,49 +55,35 @@ else
     [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo -e "${RED}Instalación cancelada por el usuario.${NC}"; exit 1; }
 fi
 
-# ============ 3. SUDO ============
+# ============ SUDO ============
 SUDO() { [[ $EUID -eq 0 ]] && "$@" || sudo "$@"; }
 
 # ============ 4. DEPENDENCIAS ============
 echo -e "${YELLOW}Instalando dependencias...${NC}"
+
+
+# Desinstalar cualquier versión de Neovim instalada vía apt
+echo "Desinstalando cualquier versión de Neovim instalada vía apt..."
+sudo apt remove --purge -y neovim
+sudo apt autoremove -y
+
 SUDO apt update
 SUDO apt install -y git curl wget fuse3 libfuse2 build-essential ca-certificates
 
-# ============ 5. DETECTAR Y DESCARGAR NEOVIM APPIMAGE ============
-echo -e "${YELLOW}Detectando versión más reciente de Neovim...${NC}"
-LATEST_URL=$(curl -fsL -o /dev/null -w "%{url_effective}" https://github.com/neovim/neovim/releases/latest)
-NVIM_VERSION=$(echo "$LATEST_URL" | sed 's|.*/tag/v||' | sed 's|/.*||')
-[ -z "$NVIM_VERSION" ] && error "No se pudo detectar versión"
 
-APPIMAGE_URL="https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-x86_64.appimage"
-# APP="$HOME/nvim.appimage"
-APP="/usr/local/bin/nvim"
+# Descarga la AppImage
+echo "Descargando la AppImage..."
+curl -LO https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.appimage
 
-echo -e "${YELLOW}Descargando Neovim v${NVIM_VERSION}...${NC}"
-SUDO curl -fLo "$APP" \
-  --retry 3 \
-  --retry-delay 5 \
-  -H "User-Agent: curl/neovim-installer" \
-  "$APPIMAGE_URL"
+# Hazlo ejecutable
+chmod +x nvim-linux-x86_64.appimage
 
-# Verificar que sea ejecutable
-SUDO file "$APP" | grep -q "ELF 64-bit" || error "AppImage corrupto o no descargado"
-SUDO chmod +x "$APP"
+# Muévelo a /usr/local/bin/nvim (requiere sudo)
+echo "Moviendo a /usr/local/bin/nvim..."
+sudo mv nvim-linux-x86_64.appimage /usr/local/bin/nvim
 
-NVIM_VER=$("$APP" --version | head -n1)
-echo -e "${GREEN}Neovim instalado: $NVIM_VER${NC}"
 
-# ============ 6. EVITAR CONFLICTO CON NEOVIM DE APT ============
-if command -v nvim >/dev/null 2>&1; then
-    OLD_NVIM=$(realpath $(which nvim))
-    if [[ "$OLD_NVIM" != "$APP" && "$OLD_NVIM" != "/usr/local/bin/nvim" ]]; then
-        echo -e "${YELLOW}Neovim de apt detectado → moviendo a nvim.apt${NC}"
-        SUDO mv "$OLD_NVIM" "${OLD_NVIM}.apt" 2>/dev/null || true
-    fi
-fi
-# SUDO ln -sf "$APP" /usr/local/bin/nvim
-
-# ============ 7. CONFIGURAR LAZYVIM + AYU ============
+# ============ CONFIGURAR LAZYVIM + AYU ============
 CONFIG="$HOME/.config/nvim"
 
 # Backup si existe
@@ -113,6 +95,7 @@ fi
 
 echo -e "${YELLOW}Instalando LazyVim...${NC}"
 git clone --depth 1 https://github.com/LazyVim/starter "$CONFIG"
+
 
 
 # Crear directorio de plugins
@@ -137,18 +120,50 @@ EOF
 echo -e "${GREEN}Tema Ayu (mirage) configurado${NC}"
 echo -e "${YELLOW}tree-sitter se instalará automáticamente al abrir archivos${NC}"
 
-# ============ 8. FINAL ============
+
+
+# Crear o modificar options.lua con la configuración del ratón y clipboard
+OPTIONS_FILE=~/.config/nvim/lua/config/options.lua
+if [ ! -f "$OPTIONS_FILE" ]; then
+    mkdir -p $(dirname "$OPTIONS_FILE")
+    touch "$OPTIONS_FILE"
+fi
+
+echo "" >> "$OPTIONS_FILE"
+echo "-- Enable mouse support" >> "$OPTIONS_FILE"
+echo 'vim.opt.mouse = "a"' >> "$OPTIONS_FILE"
+echo "-- Use system clipboard" >> "$OPTIONS_FILE"
+echo 'vim.g.clipboard = "osc52"' >> "$OPTIONS_FILE"
+
+
+cp ~/.config/nvim/init.lua /tmp//init.lua.tmp
+echo "" > ~/.config/nvim/init.lua
+
+# Keymap is "space"
+LUA_FILE=~/.config/nvim/init.lua
+if [ ! -f "$LUA_FILE" ]; then
+    mkdir -p $(dirname "$LUA_FILE")
+    touch "$LUA_FILE"
+fi
+echo "" >> "$LUA_FILE"
+echo '-- Leader key is "space":' >> "$LUA_FILE"
+echo 'vim.g.mapleader = " "' >> "$LUA_FILE"
+echo 'vim.g.maplocalleader = " "' >> "$LUA_FILE"
+
+cat /tmp//init.lua.tmp >> ~/.config/nvim/init.lua
+rm -fr /tmp//init.lua.tmp
+
+
+
+
+
+
+# ============ FINAL ============
 echo -e "${BLUE}========================================================${NC}"
 echo -e "${GREEN}¡INSTALACIÓN COMPLETA!${NC}"
 echo -e "   • Neovim: $NVIM_VER"
+echo -e "   • mouse + unnamed plus"
 echo -e "   • LazyVim + Ayu + tree-sitter automático"
 echo -e "   • Primera vez: espera 10-30s para instalar plugins"
 echo -e "${BLUE}========================================================${NC}"
 
-# ============ 9. LANZAR NEOVIM ============
-# Al final del script
-if [[ $EUID -eq 0 ]]; then
-    exec sudo -u "$SUDO_USER" "$APP"   # ← Neovim se abre como oloco
-else
-    exec "$APP"
-fi
